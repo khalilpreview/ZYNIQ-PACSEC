@@ -8,14 +8,14 @@ const tools: Tool[] = [
     functionDeclarations: [
       {
         name: "configure_generator",
-        description: "Configure a secure key generator, recipe, secure note, RSA keypair, or hash utility.",
+        description: "Configure a secure key generator, recipe, secure note, RSA keypair, hash utility, AES tool, sanitizer, ghost link, or breach radar.",
         parameters: {
           type: Type.OBJECT,
           properties: {
             type: {
               type: Type.STRING,
-              enum: ["password", "jwt", "uuid", "apiKey", "recipe", "note", "rsa", "hash"],
-              description: "The type of secret/tool. Use 'rsa' for SSH/Asymmetric keys. Use 'hash' for checksums."
+              enum: ["password", "jwt", "uuid", "apiKey", "recipe", "note", "rsa", "hash", "aes", "sanitize", "ghostLink", "breachRadar"],
+              description: "The type of secret/tool. Use 'breachRadar' for checking pwned passwords/emails."
             },
             // Single Item Params
             length: { type: Type.INTEGER, description: "Length for passwords/keys." },
@@ -62,6 +62,12 @@ const BASE_DELAY = 1000;
 
 async function generateWithRetry(model: string, contents: string, config: any, retries = 0): Promise<any> {
     try {
+        // Safe access to process.env for browser environments
+        const apiKey = typeof process !== 'undefined' && process.env ? process.env.API_KEY : '';
+        if (!apiKey) {
+            console.warn("API Key might be missing or process.env is undefined");
+        }
+        
         return await ai.models.generateContent({
             model,
             contents,
@@ -84,7 +90,18 @@ async function generateWithRetry(model: string, contents: string, config: any, r
     }
 }
 
-export const processUserRequest = async (prompt: string): Promise<{ text: string, toolCall?: SecretConfig, isError?: boolean }> => {
+export interface GeminiResponse {
+    text: string;
+    toolCall?: SecretConfig;
+    isError?: boolean;
+    usage?: {
+        promptTokens: number;
+        responseTokens: number;
+        totalTokens: number;
+    };
+}
+
+export const processUserRequest = async (prompt: string): Promise<GeminiResponse> => {
   try {
     const modelId = "gemini-2.5-flash";
 
@@ -101,10 +118,39 @@ export const processUserRequest = async (prompt: string): Promise<{ text: string
         3. Secure Notes: If user asks to "create a note", "share a secret", "write a self-destruct message", use type='note'.
         4. RSA Keys: If user asks for "SSH keys", "Public/Private pair", "Asymmetric keys", use type='rsa' (bits defaults to 2048).
         5. Hashing: If user asks to "hash this", "generate checksum", "SHA-256", use type='hash'.
-        6. Defaults: Password length 16+, Key bits 256.
-        7. Persona: Professional, retro-arcade style. Brief text.
+        6. AES: If user asks to "encrypt", "decrypt", "AES", use type='aes'.
+        7. Sanitize: If user asks to "sanitize", "escape inputs", "clean text", use type='sanitize'.
+        8. Ghost Link (Pastebin): If user asks to "share securely", "create pastebin", "generate link", "ghost link", use type='ghostLink'.
+        9. Breach Radar: If user asks "am I pwned?", "check password leak", "HIBP check", "breach check", use type='breachRadar'.
+        10. Defaults: Password length 16+, Key bits 256.
+        11. Persona: Professional, retro-arcade style. Brief text.
         `
     });
+
+    // Extract usage metadata if available, otherwise estimate
+    const usageMetadata = response.usageMetadata;
+    let usage = {
+        promptTokens: 0,
+        responseTokens: 0,
+        totalTokens: 0
+    };
+
+    if (usageMetadata) {
+        usage = {
+            promptTokens: usageMetadata.promptTokenCount || 0,
+            responseTokens: usageMetadata.candidatesTokenCount || 0,
+            totalTokens: usageMetadata.totalTokenCount || 0
+        };
+    } else {
+        // Fallback estimation: ~4 chars per token
+        const pTokens = Math.ceil(prompt.length / 4);
+        const rTokens = Math.ceil((response.text?.length || 0) / 4);
+        usage = {
+            promptTokens: pTokens,
+            responseTokens: rTokens,
+            totalTokens: pTokens + rTokens
+        };
+    }
 
     const candidates = response.candidates;
     if (candidates && candidates.length > 0) {
@@ -118,21 +164,27 @@ export const processUserRequest = async (prompt: string): Promise<{ text: string
             if (args.type === 'recipe') loadingText = "Compiling secure Loot Crate bundle...";
             if (args.type === 'rsa') loadingText = "Forging RSA Keypair (Client-Side)...";
             if (args.type === 'hash') loadingText = "Initializing Ghost Hash Algorithm...";
+            if (args.type === 'aes') loadingText = "Loading AES-256-GCM Module...";
+            if (args.type === 'sanitize') loadingText = "Engaging Input Sanitizer...";
+            if (args.type === 'ghostLink') loadingText = "Initializing E2E Encrypted Pastebin...";
+            if (args.type === 'breachRadar') loadingText = "Connecting to Dark Web Scanners (Anonymized)...";
 
             return {
                 text: loadingText,
-                toolCall: args as SecretConfig
+                toolCall: args as SecretConfig,
+                usage
             }
         }
       }
       
       return {
           text: parts[0].text || "I can help generate keys. Try 'Generate RSA Pair' or 'Hash this text'.",
-          toolCall: undefined
+          toolCall: undefined,
+          usage
       };
     }
 
-    return { text: "Input unclear. Specify key type.", toolCall: undefined };
+    return { text: "Input unclear. Specify key type.", toolCall: undefined, usage };
 
   } catch (error: any) {
     console.error("Gemini Error:", error);
@@ -151,7 +203,8 @@ export const processUserRequest = async (prompt: string): Promise<{ text: string
     return { 
         text: errorMessage, 
         toolCall: undefined,
-        isError: true
+        isError: true,
+        usage: { promptTokens: 0, responseTokens: 0, totalTokens: 0 }
     };
   }
 };

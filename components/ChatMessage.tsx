@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
+import { useState, useEffect } from 'react';
 import { Message, PromptItem } from '../types';
 import { SecretCard } from './SecretCard';
 import { LootCrate } from './LootCrate';
@@ -6,6 +7,10 @@ import { NoteCard } from './NoteCard';
 import { RsaCard } from './RsaCard';
 import { HashCard } from './HashCard';
 import { IntegrationsGrid } from './IntegrationsGrid';
+import { AesCard } from './AesCard';
+import { SanitizeCard } from './SanitizeCard';
+import { GhostLinkCard } from './GhostLinkCard';
+import { BreachRadarCard } from './BreachRadarCard';
 
 interface ChatMessageProps {
   message: Message;
@@ -150,7 +155,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onExpire, onP
             {message.integrations && (
                 <div className="px-2 pb-4 md:px-5 md:pb-6">
                      <div className="h-px bg-indigo-900/50 w-full mb-4"></div>
-                     <IntegrationsGrid items={message.integrations} />
+                     <IntegrationsGrid items={message.integrations} onConnect={onIntegrationConnect} />
                 </div>
             )}
 
@@ -165,6 +170,10 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onExpire, onP
                             case 'note': return <NoteCard />;
                             case 'rsa': return <RsaCard bits={message.toolCall.bits} />;
                             case 'hash': return <HashCard />;
+                            case 'aes': return <AesCard />;
+                            case 'sanitize': return <SanitizeCard />;
+                            case 'ghostLink': return <GhostLinkCard />;
+                            case 'breachRadar': return <BreachRadarCard />;
                             default: return <SecretCard config={message.toolCall} />;
                         }
                     })()}

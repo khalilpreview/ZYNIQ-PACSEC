@@ -1,14 +1,19 @@
-import React, { useState } from 'react';
+import * as React from 'react';
+import { useState } from 'react';
 import { IntegrationItem } from '../types';
 
 interface IntegrationsGridProps {
   items: IntegrationItem[];
+  onConnect?: (id: string) => void;
 }
 
-export const IntegrationsGrid: React.FC<IntegrationsGridProps> = ({ items }) => {
+export const IntegrationsGrid: React.FC<IntegrationsGridProps> = ({ items, onConnect }) => {
   const [connectedIds, setConnectedIds] = useState<Set<string>>(new Set());
+  const [hoveredItem, setHoveredItem] = useState<IntegrationItem | null>(null);
 
-  const handleConnect = (item: IntegrationItem) => {
+  const handleConnect = (item: IntegrationItem, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering other clicks if any
+    
     // For external tools, we just open the link
     if (item.url) {
         window.open(item.url, '_blank');
@@ -17,10 +22,14 @@ export const IntegrationsGrid: React.FC<IntegrationsGridProps> = ({ items }) => 
     // Toggle visual state
     setConnectedIds(prev => {
         const next = new Set(prev);
-        if (next.has(item.id)) {
-            next.delete(item.id);
-        } else {
+        const isConnecting = !next.has(item.id);
+        
+        if (isConnecting) {
             next.add(item.id);
+            // Notify parent
+            if (onConnect) onConnect(item.id);
+        } else {
+            next.delete(item.id);
         }
         return next;
     });
@@ -28,65 +37,79 @@ export const IntegrationsGrid: React.FC<IntegrationsGridProps> = ({ items }) => 
 
   return (
     <div className="w-full mt-4 font-arcade animate-fade-in-up">
-      <div className="bg-black border-2 md:border-4 border-indigo-500 p-1 relative shadow-[4px_4px_0_0_rgba(99,102,241,0.5)]">
+      <div className="bg-black border-2 md:border-4 border-indigo-600 p-1 relative shadow-[4px_4px_0_0_rgba(79,70,229,0.4)]">
         
         {/* Header */}
-        <div className="bg-indigo-500 text-white p-2 border-b-2 md:border-b-4 border-black flex items-center justify-between mb-2">
+        <div className="bg-indigo-600 text-white p-1.5 md:p-2 border-b-2 md:border-b-4 border-black flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
-                <span className="text-xl animate-spin-slow">⚙️</span>
-                <span className="text-[10px] md:text-xs tracking-widest font-bold">SECURITY MODULES MARKET</span>
+                <span className="text-lg animate-spin-slow">⚙️</span>
+                <span className="text-[10px] md:text-xs tracking-widest font-bold">MODULES MARKET</span>
             </div>
-            <span className="text-[8px] md:text-[9px] bg-black px-2 py-0.5 border border-white">FREE TIER</span>
+            <span className="text-[8px] bg-black px-2 py-0.5 border border-white/50">FREE TIER</span>
         </div>
 
-        {/* Grid */}
-        <div className="p-1 md:p-2 grid grid-cols-1 md:grid-cols-2 gap-3">
+        {/* Compact Grid */}
+        <div className="p-1 grid grid-cols-2 md:grid-cols-3 gap-1 md:gap-2">
             {items.map((item) => {
                 const isConnected = connectedIds.has(item.id);
+                const isHovered = hoveredItem?.id === item.id;
+                
                 return (
-                    <div key={item.id} className="bg-gray-900/50 border border-indigo-500/30 p-3 hover:border-indigo-400 hover:bg-gray-900 transition-all group flex flex-col justify-between h-full">
-                        <div>
-                            <div className="flex items-start justify-between mb-2">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-lg grayscale group-hover:grayscale-0 transition-all">{item.icon}</span>
-                                    <span className="text-xs text-indigo-300 font-bold tracking-wider group-hover:text-white">{item.name}</span>
-                                </div>
-                                <span className="text-[8px] px-1 border border-gray-700 text-gray-500">
-                                    {item.type === 'api' ? 'API' : 'LINK'}
-                                </span>
-                            </div>
-                            <p className="text-[9px] text-gray-400 font-mono mb-3 leading-relaxed min-h-[2.5em]">
-                                {item.desc}
-                            </p>
-                        </div>
-                        
-                        <button 
-                            onClick={() => handleConnect(item)}
-                            className={`w-full text-[9px] py-1.5 border-2 transition-all uppercase tracking-widest font-bold flex items-center justify-center gap-2
+                    <div 
+                        key={item.id} 
+                        onMouseEnter={() => setHoveredItem(item)}
+                        onMouseLeave={() => setHoveredItem(null)}
+                        onClick={(e) => handleConnect(item, e)}
+                        className={`
+                            cursor-pointer relative p-2 md:p-3 border-2 transition-all group flex flex-col items-center justify-center gap-1
                             ${isConnected 
-                                ? 'bg-green-500 text-black border-green-500 hover:bg-red-500 hover:border-red-500 hover:text-white' 
-                                : 'bg-transparent text-indigo-400 border-indigo-500 hover:bg-indigo-500 hover:text-white'
-                            }`}
-                        >
-                            {isConnected ? (
-                                <>
-                                    <span className="group-hover:hidden">CONNECTED</span>
-                                    <span className="hidden group-hover:inline">DISCONNECT</span>
-                                </>
-                            ) : (
-                                <>
-                                    <span>CONNECT</span>
-                                    <span>↗</span>
-                                </>
-                            )}
-                        </button>
+                                ? 'bg-indigo-900/40 border-green-500 shadow-[inset_0_0_10px_rgba(34,197,94,0.2)]' 
+                                : 'bg-gray-900/40 border-indigo-900/60 hover:border-indigo-400 hover:bg-gray-800'
+                            }
+                        `}
+                    >
+                        {/* Status Light */}
+                        <div className={`absolute top-1 right-1 w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-green-500 shadow-[0_0_5px_lime]' : 'bg-gray-700'}`}></div>
+
+                        {/* Icon */}
+                        <span className={`text-xl md:text-2xl transition-all ${isConnected ? 'grayscale-0 scale-110' : 'grayscale group-hover:grayscale-0 group-hover:scale-110'}`}>
+                            {item.icon}
+                        </span>
+                        
+                        {/* Name */}
+                        <span className={`text-[9px] font-bold tracking-wider text-center ${isConnected ? 'text-green-400' : 'text-indigo-300 group-hover:text-white'}`}>
+                            {item.name}
+                        </span>
+
+                        {/* Action Text (Only on hover) */}
+                        <span className="text-[8px] uppercase tracking-widest text-white/50 group-hover:text-white transition-colors">
+                            {isConnected ? 'ACTIVE' : 'CONNECT'}
+                        </span>
                     </div>
                 );
             })}
         </div>
         
-        <div className="bg-indigo-900/20 p-2 mt-2 border-t border-indigo-500/30 text-[9px] font-mono text-center text-indigo-300">
-            WARNING: EXTERNAL MODULES RUN OUTSIDE PACSEC SANDBOX.
+        {/* Info Deck (Fixed Height Description Area) */}
+        <div className="bg-indigo-950/50 border-t-2 border-indigo-900/50 p-2 md:p-3 h-16 md:h-20 flex flex-col justify-center relative overflow-hidden">
+            {/* Scanline overlay for deck */}
+            <div className="absolute inset-0 pointer-events-none opacity-10 bg-[linear-gradient(transparent_1px,#000_1px)] bg-[size:100%_2px]"></div>
+            
+            {hoveredItem ? (
+                <div className="animate-fade-in relative z-10">
+                    <div className="flex justify-between items-center mb-1">
+                        <span className="text-[9px] text-indigo-300 font-bold">{hoveredItem.name}</span>
+                        <span className="text-[8px] text-indigo-500 font-mono">{hoveredItem.type === 'api' ? 'REST API' : 'EXTERNAL LINK'}</span>
+                    </div>
+                    <p className="text-[9px] md:text-[10px] text-indigo-100 font-mono leading-tight">
+                        {hoveredItem.desc}
+                    </p>
+                </div>
+            ) : (
+                <div className="text-center text-[9px] text-indigo-500/50 font-mono animate-pulse relative z-10">
+                    HOVER OVER A MODULE TO INSPECT SPECS...
+                </div>
+            )}
         </div>
 
       </div>

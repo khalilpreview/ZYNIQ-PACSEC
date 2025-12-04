@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import * as React from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export const NoteCard: React.FC = () => {
   const [noteText, setNoteText] = useState('');
@@ -9,11 +10,12 @@ export const NoteCard: React.FC = () => {
   const [isCrumbling, setIsCrumbling] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  // In browser, setInterval returns a number ID
+  const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (isLocked && expiryTime) {
-      timerRef.current = setInterval(() => {
+      timerRef.current = window.setInterval(() => {
         const now = Date.now();
         const diff = expiryTime - now;
 

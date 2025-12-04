@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import * as React from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Loader } from './components/Loader';
 import { PacThinking } from './components/PacThinking';
 import { ChatMessage } from './components/ChatMessage';
@@ -15,13 +16,28 @@ export const PacChar = ({ className }: { className?: string }) => (
   </span>
 );
 
+const MAX_CONTEXT_TOKENS = 1000000; // Gemini 2.5 Flash Context Window
+
+const formatCompactNumber = (num: number) => {
+    return Intl.NumberFormat('en-US', {
+        notation: "compact",
+        maximumFractionDigits: 1
+    }).format(num);
+};
+
 const INTEGRATION_TOOLS: IntegrationItem[] = [
     { id: 'tool_vt', name: 'VIRUS TOTAL', desc: 'Analyze suspicious files, domains, IPs and URLs to detect malware.', icon: '🦠', url: 'https://www.virustotal.com/gui/home/upload', type: 'external' },
-    { id: 'tool_hibp', name: 'HAVE I BEEN PWNED', desc: 'Check if your email or phone is in a data breach.', icon: '🕵️', url: 'https://haveibeenpwned.com/', type: 'external' },
+    { id: 'tool_hibp', name: 'BREACH RADAR', desc: 'Identify compromised accounts via HaveIBeenPwned API.', icon: '☢️', url: 'https://haveibeenpwned.com/', type: 'external' },
     { id: 'tool_cyberchef', name: 'CYBER CHEF', desc: 'The Cyber Swiss Army Knife. Encrypt, Encode, Compress, Analyze.', icon: '🍳', url: 'https://gchq.github.io/CyberChef/', type: 'external' },
     { id: 'tool_shodan', name: 'SHODAN', desc: 'Search engine for Internet-connected devices.', icon: '🌐', url: 'https://www.shodan.io/', type: 'external' },
     { id: 'tool_cve', name: 'CVE MITRE', desc: 'Identify, define, and catalog publicly disclosed vulnerabilities.', icon: '🛡️', url: 'https://cve.mitre.org/', type: 'external' },
-    { id: 'tool_jwt', name: 'JWT.IO', desc: 'Debug and decode JSON Web Tokens.', icon: '🔑', url: 'https://jwt.io/', type: 'external' }
+    { id: 'tool_jwt', name: 'JWT.IO', desc: 'Debug and decode JSON Web Tokens.', icon: '🔑', url: 'https://jwt.io/', type: 'external' },
+    { id: 'tool_dns', name: 'DNS DUMPSTER', desc: 'DNS recon tool to find subdomains and mapping.', icon: '🗺️', url: 'https://dnsdumpster.com/', type: 'external' },
+    { id: 'tool_exploit', name: 'EXPLOIT DB', desc: 'Archive of public exploits and vulnerable software.', icon: '💣', url: 'https://www.exploit-db.com/', type: 'external' },
+    { id: 'tool_crontab', name: 'CRONTAB GURU', desc: 'Quick and simple editor for cron schedule expressions.', icon: '⏰', url: 'https://crontab.guru/', type: 'external' },
+    { id: 'tool_regex', name: 'REGEX 101', desc: 'Regular expression debugger with real-time explanation.', icon: '🔍', url: 'https://regex101.com/', type: 'external' },
+    { id: 'tool_json', name: 'JSON LINT', desc: 'Validate and format JSON data.', icon: '📋', url: 'https://jsonlint.com/', type: 'external' },
+    { id: 'tool_urldec', name: 'URL DECODER', desc: 'Decode/Encode URLs accurately.', icon: '🔗', url: 'https://www.urldecoder.org/', type: 'external' }
 ];
 
 export const App: React.FC = () => {
@@ -31,6 +47,9 @@ export const App: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
   
+  // Usage Stats
+  const [sessionStats, setSessionStats] = useState({ totalTokens: 0, contextUsed: 0 });
+
   // Menu Button Animation State
   const [isMenuExpanded, setIsMenuExpanded] = useState(true);
   const [isInitialPhase, setIsInitialPhase] = useState(true);
@@ -84,6 +103,14 @@ export const App: React.FC = () => {
     // Call Gemini
     const response = await processUserRequest(text);
 
+    // Update Stats
+    if (response.usage) {
+        setSessionStats(prev => ({
+            totalTokens: prev.totalTokens + response.usage!.totalTokens,
+            contextUsed: response.usage!.promptTokens + response.usage!.responseTokens // Current context size
+        }));
+    }
+
     setIsProcessing(false);
     
     // Assistant inherits the same TTL context
@@ -128,8 +155,6 @@ export const App: React.FC = () => {
   };
 
   const handleIntegrationConnect = (toolId: string) => {
-      // Logic to unlock new commands based on tool connection
-      // For now, we simulate a system message acknowledging the connection
       const toolName = INTEGRATION_TOOLS.find(t => t.id === toolId)?.name || 'MODULE';
       
       const confirmMsg: Message = {
@@ -187,8 +212,9 @@ export const App: React.FC = () => {
           items: [
               { id: 'cmd_rsa', label: 'RSA KEY FORGE', cmd: 'Generate RSA Key Pair', desc: 'PUBLIC/PRIVATE KEY', type: 'command' },
               { id: 'cmd_hash', label: 'GHOST HASHER', cmd: 'Open Ghost Hash Tool', desc: 'SHA-256 / SHA-512', type: 'command' },
-              { id: 'cmd_hex_128', label: '128-BIT HEX', cmd: 'Generate 128-bit hex string', desc: 'RAW HEX', type: 'command' },
-              { id: 'cmd_b64_256', label: '256-BIT BASE64', cmd: 'Generate 256-bit base64 string', desc: 'ENCODED BYTES', type: 'command' }
+              { id: 'cmd_aes', label: 'AES ENIGMA', cmd: 'Open AES Encryption Tool', desc: 'ENCRYPT/DECRYPT', type: 'command' },
+              { id: 'cmd_sanitize', label: 'HTML DECON', cmd: 'Open HTML Sanitizer', desc: 'CLEAN XSS', type: 'command' },
+              { id: 'cmd_breach', label: 'BREACH RADAR', cmd: 'Open Breach Radar Scanner', desc: 'HIBP CHECK', type: 'command' }
           ]
       },
       {
@@ -212,8 +238,8 @@ export const App: React.FC = () => {
           type: 'category',
           items: [
               { id: 'cmd_note_create', label: 'CREATE NOTE', cmd: 'Create a new secure note container', desc: 'NEW SECURE NOTE', type: 'command' },
-              { id: 'cmd_note_howto', label: 'HOW IT WORKS', cmd: 'Explain how Zero Knowledge Notes work.', desc: 'TTL & ENCRYPTION', type: 'command' },
-              { id: 'cmd_note_server', label: 'SERVER CONFIG', cmd: 'Template for sharing server credentials.', desc: 'CREDENTIAL TEMPLATE', type: 'command' }
+              { id: 'cmd_ghost_link', label: 'GHOST LINK', cmd: 'Generate Encrypted Ghost Link (Pastebin)', desc: 'E2E URL SHARE', type: 'command' },
+              { id: 'cmd_note_howto', label: 'HOW IT WORKS', cmd: 'Explain how Zero Knowledge Notes work.', desc: 'TTL & ENCRYPTION', type: 'command' }
           ]
       }
   ];
@@ -262,6 +288,8 @@ export const App: React.FC = () => {
       setMessages(prev => [...prev, newsGuideMsg]);
   };
 
+  const isContextFull = sessionStats.contextUsed >= MAX_CONTEXT_TOKENS;
+
   if (loadingApp) {
     return <Loader onComplete={() => setLoadingApp(false)} />;
   }
@@ -278,17 +306,21 @@ export const App: React.FC = () => {
       </div>
 
       {/* Header (Only visible when chat starts) */}
-      <header className={`fixed top-0 left-0 right-0 p-2 md:p-4 z-40 transition-all duration-500 bg-black/90 border-b-2 md:border-b-4 border-pac-blue ${hasStarted ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full'}`}>
+      <header className={`fixed top-0 left-0 right-0 p-2 md:p-2 z-40 transition-all duration-500 bg-black/90 border-b-2 md:border-b-4 border-pac-blue ${hasStarted ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full'}`}>
         <div className="max-w-4xl mx-auto flex items-center justify-center md:justify-between">
-             {/* Hidden on mobile to clean up view */}
-             <div className="hidden md:flex items-center gap-4">
+             {/* Dynamic Stats - Replaces 1UP/High Score */}
+             <div className="hidden md:flex items-center gap-6">
                  <div className="flex flex-col">
-                    <span className="text-pac-ghostRed font-arcade text-[10px] animate-pulse">1UP</span>
-                    <span className="text-white font-arcade text-xs">00</span>
+                    <span className="text-pac-ghostRed font-arcade text-[10px] animate-pulse">TOKENS</span>
+                    <span className="text-white font-arcade text-xs tracking-widest">
+                        {sessionStats.totalTokens.toString().padStart(6, '0')}
+                    </span>
                  </div>
                  <div className="flex flex-col items-center">
-                    <span className="text-pac-yellow font-arcade text-[10px]">HIGH SCORE</span>
-                    <span className="text-white font-arcade text-xs">999999</span>
+                    <span className="text-pac-yellow font-arcade text-[10px]">CONTEXT</span>
+                    <span className={`text-white font-arcade text-xs tracking-widest ${isContextFull ? 'text-red-500 animate-pulse' : ''}`}>
+                        {formatCompactNumber(sessionStats.contextUsed)} T
+                    </span>
                  </div>
              </div>
              
@@ -365,7 +397,7 @@ export const App: React.FC = () => {
             : 'fixed bottom-6 left-0 right-0 bg-[#080808] border-t-2 md:border-t-4 border-pac-blue p-2 md:p-4 pb-6 md:pb-8 shadow-[0_-10px_30px_rgba(0,0,0,0.8)]'
         }
       `}>
-          <div className={`mx-auto w-full max-w-4xl flex gap-2 md:gap-3 items-stretch h-12 md:h-14`}>
+          <div className={`mx-auto w-full max-w-4xl flex gap-2 md:gap-3 items-stretch h-12 md:h-12`}>
             
             {/* Start / Menu Button (Collapsible) */}
             {!isProcessing && (
@@ -401,7 +433,9 @@ export const App: React.FC = () => {
                 flex-1 relative flex items-center bg-black border-2 transition-all duration-300 group
                 ${isProcessing 
                     ? 'border-gray-800 opacity-50' 
-                    : 'border-pac-blue shadow-[0_0_10px_rgba(30,58,138,0.2)] md:shadow-[0_0_15px_rgba(30,58,138,0.3)] focus-within:border-pac-ghostCyan focus-within:shadow-[0_0_20px_rgba(34,211,238,0.4)]'
+                    : isContextFull
+                        ? 'border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.3)]'
+                        : 'border-pac-blue shadow-[0_0_10px_rgba(30,58,138,0.2)] md:shadow-[0_0_15px_rgba(30,58,138,0.3)] focus-within:border-pac-ghostCyan focus-within:shadow-[0_0_20px_rgba(34,211,238,0.4)]'
                 }
             `}>
                 
@@ -437,21 +471,29 @@ export const App: React.FC = () => {
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSendMessage(inputValue)}
-                    placeholder={hasStarted ? "ENTER COMMAND..." : "INITIATE SEQUENCE..."}
-                    className="flex-1 w-full bg-transparent border-none focus:ring-0 text-white placeholder-gray-600 font-mono text-sm md:text-base p-2 md:p-3 tracking-wider caret-pac-ghostCyan"
-                    disabled={isProcessing}
+                    placeholder={isContextFull ? "CONTEXT MEMORY FULL." : (hasStarted ? "ENTER COMMAND..." : "INITIATE SEQUENCE...")}
+                    className={`flex-1 w-full bg-transparent border-none focus:ring-0 placeholder-gray-600 font-mono text-sm md:text-base p-2 md:p-3 tracking-wider caret-pac-ghostCyan ${isContextFull ? 'text-red-500 cursor-not-allowed' : 'text-white'}`}
+                    disabled={isProcessing || isContextFull}
                     autoFocus
                     spellCheck={false}
                     autoComplete="off"
                 />
 
+                {/* Context Limit Counter */}
+                <div className={`hidden md:flex flex-col justify-center items-end px-2 mr-1 border-r-2 border-gray-800 h-full ${isContextFull ? 'text-red-500' : 'text-gray-600'}`} title="Context Usage">
+                    <span className="text-[6px] font-arcade leading-none mb-0.5 opacity-70">CTX</span>
+                    <span className={`text-[9px] font-mono font-bold whitespace-nowrap ${isContextFull ? 'animate-pulse' : ''}`}>
+                        {formatCompactNumber(sessionStats.contextUsed)}
+                    </span>
+                </div>
+
                 {/* Enter Button - Integrated Action */}
                 <button 
                     onClick={() => handleSendMessage(inputValue)}
-                    disabled={!inputValue.trim() || isProcessing}
+                    disabled={!inputValue.trim() || isProcessing || isContextFull}
                     className={`
-                        h-full px-3 md:px-5 font-arcade text-[10px] uppercase tracking-widest transition-all border-l-2 border-gray-800 flex items-center justify-center
-                        ${!inputValue.trim() || isProcessing 
+                        h-full px-3 md:px-5 font-arcade text-[10px] uppercase tracking-widest transition-all border-l-0 md:border-l-0 border-gray-800 flex items-center justify-center
+                        ${!inputValue.trim() || isProcessing || isContextFull
                             ? 'text-gray-700 bg-black cursor-not-allowed' 
                             : 'bg-pac-blue text-white hover:bg-pac-yellow hover:text-black hover:font-bold hover:shadow-[inset_0_0_10px_rgba(255,255,255,0.4)]'
                         }

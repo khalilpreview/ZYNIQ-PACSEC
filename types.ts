@@ -1,4 +1,4 @@
-export type SecretType = 'password' | 'jwt' | 'uuid' | 'apiKey' | 'recipe' | 'note' | 'rsa' | 'hash';
+export type SecretType = 'password' | 'jwt' | 'uuid' | 'apiKey' | 'recipe' | 'note' | 'rsa' | 'hash' | 'aes' | 'sanitize' | 'ghostLink' | 'breachRadar';
 
 export interface SecretConfig {
   type: SecretType;
@@ -34,6 +34,7 @@ export interface IntegrationItem {
   url: string;
   type: 'external' | 'api';
   status?: 'disconnected' | 'connected';
+  actions?: PromptItem[];
 }
 
 export interface Message {
@@ -47,4 +48,10 @@ export interface Message {
   originalTTL?: number; // Duration in ms
   prompts?: PromptItem[]; // List of clickable prompts/commands
   integrations?: IntegrationItem[]; // List of connectable tools
+  usage?: {
+      promptTokens: number;
+      responseTokens: number;
+      totalTokens: number;
+      contextUsed?: number;
+  };
 }

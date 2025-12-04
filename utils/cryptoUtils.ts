@@ -92,3 +92,99 @@ export const generateHash = async (text: string, algorithm: 'SHA-256' | 'SHA-512
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 };
+
+export const generateSHA1 = async (text: string): Promise<string> => {
+    const msgBuffer = new TextEncoder().encode(text);
+    const hashBuffer = await crypto.subtle.digest('SHA-1', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+};
+
+// --- AES UTILS ---
+
+const getAesKeyMaterial = (password: string): Promise<CryptoKey> => {
+    const enc = new TextEncoder();
+    return window.crypto.subtle.importKey(
+        "raw",
+        enc.encode(password),
+        { name: "PBKDF2" },
+        false,
+        ["deriveBits", "deriveKey"]
+    );
+};
+
+const getAesKey = (keyMaterial: CryptoKey, salt: Uint8Array): Promise<CryptoKey> => {
+    return window.crypto.subtle.deriveKey(
+        {
+            name: "PBKDF2",
+            salt: salt,
+            iterations: 100000,
+            hash: "SHA-256"
+        },
+        keyMaterial,
+        { name: "AES-GCM", length: 256 },
+        true,
+        ["encrypt", "decrypt"]
+    );
+};
+
+export const encryptAES = async (text: string, password: string): Promise<string> => {
+    const enc = new TextEncoder();
+    const salt = window.crypto.getRandomValues(new Uint8Array(16));
+    const iv = window.crypto.getRandomValues(new Uint8Array(12));
+
+    const keyMaterial = await getAesKeyMaterial(password);
+    const key = await getAesKey(keyMaterial, salt);
+
+    const encoded = enc.encode(text);
+    const ciphertext = await window.crypto.subtle.encrypt(
+        {
+            name: "AES-GCM",
+            iv: iv
+        },
+        key,
+        encoded
+    );
+
+    const buffer = new Uint8Array(salt.byteLength + iv.byteLength + ciphertext.byteLength);
+    buffer.set(salt, 0);
+    buffer.set(iv, salt.byteLength);
+    buffer.set(new Uint8Array(ciphertext), salt.byteLength + iv.byteLength);
+
+    let binary = '';
+    const len = buffer.byteLength;
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(buffer[i]);
+    }
+    return window.btoa(binary);
+};
+
+export const decryptAES = async (encryptedBase64: string, password: string): Promise<string> => {
+    const binary = window.atob(encryptedBase64);
+    const len = binary.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+
+    if (len < 28) throw new Error("Invalid data");
+
+    const salt = bytes.slice(0, 16);
+    const iv = bytes.slice(16, 28);
+    const ciphertext = bytes.slice(28);
+
+    const keyMaterial = await getAesKeyMaterial(password);
+    const key = await getAesKey(keyMaterial, salt);
+
+    const decrypted = await window.crypto.subtle.decrypt(
+        {
+            name: "AES-GCM",
+            iv: iv
+        },
+        key,
+        ciphertext
+    );
+
+    const dec = new TextDecoder();
+    return dec.decode(decrypted);
+};
