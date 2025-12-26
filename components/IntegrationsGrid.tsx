@@ -48,8 +48,8 @@ export const IntegrationsGrid: React.FC<IntegrationsGridProps> = ({ items, onCon
             <span className="text-[8px] bg-black px-2 py-0.5 border border-white/50">FREE TIER</span>
         </div>
 
-        {/* Compact Grid */}
-        <div className="p-1 grid grid-cols-2 md:grid-cols-3 gap-1 md:gap-2">
+        {/* Compact Grid - 4 Columns */}
+        <div className="p-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1 md:gap-2">
             {items.map((item) => {
                 const isConnected = connectedIds.has(item.id);
                 const isHovered = hoveredItem?.id === item.id;

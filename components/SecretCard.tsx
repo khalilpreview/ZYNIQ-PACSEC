@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { SecretConfig } from '../types';
-import { generateSecurePassword, generateSecureHex, generateSecureBase64, generateUUID } from '../utils/cryptoUtils';
+import { generateSecurePassword, generateSecureHex, generateSecureBase64, generateUUID, calculateEntropy } from '../utils/cryptoUtils';
 
 interface SecretCardProps {
   config: SecretConfig;
@@ -32,20 +32,26 @@ export const SecretCard: React.FC<SecretCardProps> = ({ config }) => {
   const [useUppercase, setUseUppercase] = useState(config.useUppercase ?? true);
   const [format, setFormat] = useState<'hex' | 'base64'>(config.format || 'hex');
   const [copied, setCopied] = useState(false);
+  const [entropy, setEntropy] = useState(0);
 
   // Generation Logic
   const generate = useCallback(() => {
+    let newSecret = '';
     if (config.type === 'password') {
-      setSecret(generateSecurePassword(length, { symbols: useSymbols, numbers: useNumbers, uppercase: useUppercase }));
+      newSecret = generateSecurePassword(length, { symbols: useSymbols, numbers: useNumbers, uppercase: useUppercase });
+      setEntropy(calculateEntropy(newSecret));
     } else if (config.type === 'jwt' || config.type === 'apiKey') {
       if (format === 'hex') {
-        setSecret(generateSecureHex(bits));
+        newSecret = generateSecureHex(bits);
       } else {
-        setSecret(generateSecureBase64(bits));
+        newSecret = generateSecureBase64(bits);
       }
+      setEntropy(0);
     } else if (config.type === 'uuid') {
-      setSecret(generateUUID());
+      newSecret = generateUUID();
+      setEntropy(0);
     }
+    setSecret(newSecret);
     setCopied(false);
   }, [config.type, length, bits, useSymbols, useNumbers, useUppercase, format]);
 
@@ -69,28 +75,39 @@ export const SecretCard: React.FC<SecretCardProps> = ({ config }) => {
     }
   };
 
-  // Strength Calculation
-  const getStrengthPoints = useCallback(() => {
-    if (config.type !== 'password') return 0;
-    let score = 0;
-    if (length >= 12) score++;
-    if (length >= 16) score++;
-    if (length >= 24) score++;
-    if (useUppercase) score++;
-    if (useNumbers) score++;
-    if (useSymbols) score++;
-    return score; // Max 6
-  }, [length, useUppercase, useNumbers, useSymbols, config.type]);
+  // Strength Calculation based on Entropy
+  const getStrengthLabel = () => {
+      if (entropy < 35) return 'WEAK';
+      if (entropy < 60) return 'FAIR';
+      if (entropy < 100) return 'GOOD';
+      return 'EXCELLENT';
+  };
 
-  const points = getStrengthPoints();
+  const getStrengthColor = () => {
+      if (entropy < 35) return 'bg-red-500';
+      if (entropy < 60) return 'bg-yellow-500';
+      if (entropy < 100) return 'bg-blue-400';
+      return 'bg-green-500';
+  };
+
+  const getStrengthBars = () => {
+      if (entropy < 20) return 1;
+      if (entropy < 40) return 2;
+      if (entropy < 60) return 3;
+      if (entropy < 80) return 4;
+      if (entropy < 100) return 5;
+      return 6;
+  };
+
+  const strengthBars = getStrengthBars();
 
   return (
     <div className="w-full max-w-1xl mt-4 animate-fade-in-up font-arcade" role="region" aria-label={`${getTitle()} Generator`}>
       {/* Arcade Bezel Container */}
-      <div className="bg-black border-2 md:border-4 border-pac-blue p-1 md:p-2 relative shadow-[4px_4px_0_0_rgba(30,41,59,0.5)] md:shadow-[8px_8px_0_0_rgba(30,41,59,0.5)]">
+      <div className="bg-[var(--card-bg)] border-2 md:border-4 border-[var(--border-color)] p-1 md:p-2 relative shadow-[4px_4px_0_0_rgba(30,41,59,0.5)] md:shadow-[8px_8px_0_0_rgba(30,41,59,0.5)] transition-colors duration-300">
         
         {/* Header */}
-        <div className="bg-pac-blue text-white p-2 border-b-2 md:border-b-4 border-black flex justify-between items-center mb-2 md:mb-4">
+        <div className="bg-pac-blue text-white p-2 border-b-2 md:border-b-4 border-[var(--border-color)] flex justify-between items-center mb-2 md:mb-4 transition-colors duration-300">
           <div className="flex items-center gap-2 md:gap-3">
              <div className="animate-chomp text-pac-yellow text-[10px] md:text-xs" aria-hidden="true">C</div>
              <h3 className="text-white text-[10px] md:text-xs tracking-widest font-normal">{getTitle()}</h3>
@@ -129,19 +146,22 @@ export const SecretCard: React.FC<SecretCardProps> = ({ config }) => {
 
             {/* Password Strength - Square Pixel Meter */}
             {config.type === 'password' && (
-              <div className="flex items-center gap-2 md:gap-4 border-b-2 border-dashed border-gray-800 pb-2 md:pb-4" role="progressbar" aria-valuenow={points} aria-valuemin={0} aria-valuemax={6} aria-label="Password Strength">
+              <div className="flex items-center gap-2 md:gap-4 border-b-2 border-dashed border-gray-800 pb-2 md:pb-4" role="progressbar" aria-valuenow={entropy} aria-valuemin={0} aria-valuemax={128} aria-label="Password Strength">
                  <span className="text-[9px] md:text-[10px] text-pac-blue uppercase w-16 md:w-20 hidden sm:inline" aria-hidden="true">POWER</span>
                  <div className="flex gap-1 md:gap-2">
                     {[...Array(6)].map((_, i) => (
                         <div 
                             key={i}
-                            className={`w-2 h-2 md:w-3 md:h-3 ${i < points ? 'bg-pac-yellow' : 'bg-gray-800'} border border-black`}
+                            className={`w-2 h-2 md:w-3 md:h-3 ${i < strengthBars ? getStrengthColor() : 'bg-gray-800'} border border-black transition-colors duration-300`}
                         ></div>
                     ))}
                  </div>
-                 <span className="text-[9px] md:text-[10px] text-gray-500 ml-auto" aria-hidden="true">
-                    {points < 3 ? 'WEAK' : points < 5 ? 'NORMAL' : 'MAX'}
-                 </span>
+                 <div className="ml-auto flex flex-col items-end">
+                    <span className={`text-[9px] md:text-[10px] ${getStrengthColor().replace('bg-', 'text-')}`} aria-hidden="true">
+                        {getStrengthLabel()}
+                    </span>
+                    <span className="text-[8px] text-gray-600">{entropy} BITS</span>
+                 </div>
               </div>
             )}
 

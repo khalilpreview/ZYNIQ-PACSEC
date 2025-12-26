@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+    <rect width="512" height="512" rx="64" fill="#121212" />
+    <g transform="translate(56, 128)">
+        <!-- Pac-Man shape -->
+        <path d="M200 128 L380 40 A160 160 0 1 0 380 216 Z" fill="#F2C94C" />
+    </g>
+    <!-- Lock icon overlay -->
+    <g transform="translate(320, 320)">
+        <rect x="20" y="60" width="120" height="100" rx="10" fill="#1E3A8A" stroke="#F2C94C" stroke-width="8" />
+        <path d="M50 60 V40 A30 30 0 0 1 110 40 V60" fill="none" stroke="#F2C94C" stroke-width="8"
+            stroke-linecap="round" />
+        <circle cx="80" cy="100" r="12" fill="#F2C94C" />
+        <rect x="76" y="100" width="8" height="24" fill="#F2C94C" />
+    </g>
+</svg>

@@ -57,7 +57,7 @@ export const NewsCard: React.FC<NewsCardProps> = ({ onReadMore }) => {
         <div className="flex justify-between items-end mb-2 px-1">
             
             {/* Title - Left Side */}
-            <div className="flex items-center gap-2 text-pac-ghostCyan">
+            <div className="flex items-center gap-2 text-[var(--accent-color)]">
                 <span className="animate-pulse text-base">!</span>
                 <span className="text-[10px] tracking-widest">LATEST SECURITY NEWS</span>
             </div>
@@ -81,7 +81,7 @@ export const NewsCard: React.FC<NewsCardProps> = ({ onReadMore }) => {
                     {Array.from({ length: totalSlides }).map((_, idx) => (
                         <div 
                             key={idx} 
-                            className={`w-1.5 h-1.5 border border-pac-ghostCyan ${idx === slideIndex ? 'bg-pac-ghostCyan' : 'bg-transparent'}`}
+                            className={`w-1.5 h-1.5 border border-[var(--accent-color)] ${idx === slideIndex ? 'bg-[var(--accent-color)]' : 'bg-transparent'}`}
                         />
                     ))}
                 </div>
@@ -91,18 +91,18 @@ export const NewsCard: React.FC<NewsCardProps> = ({ onReadMore }) => {
         {/* Carousel Container */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
             {currentItems.map((item, idx) => (
-                <div key={idx} className="bg-black border-2 border-pac-ghostCyan/50 p-1 shadow-[2px_2px_0_0_rgba(34,211,238,0.2)] hover:border-pac-ghostCyan hover:shadow-[0_0_10px_rgba(34,211,238,0.6)] transition-all group min-h-[110px] md:min-h-[130px]">
-                    <div className="bg-pac-ghostCyan/5 p-3 md:p-4 h-full flex flex-col justify-between">
+                <div key={idx} className="bg-[var(--card-bg)] border-2 border-[var(--accent-color)] p-1 shadow-[2px_2px_0_0_rgba(34,211,238,0.2)] hover:border-[var(--accent-color)] hover:shadow-[0_0_10px_rgba(34,211,238,0.6)] transition-all group min-h-[110px] md:min-h-[130px]">
+                    <div className="bg-[var(--accent-color)]/5 p-3 md:p-4 h-full flex flex-col justify-between">
                         <div>
-                            <div className="flex justify-between items-start mb-2 border-b border-pac-ghostCyan/30 pb-2 gap-2">
-                                <span className="text-pac-ghostCyan text-xs font-bold tracking-wider group-hover:text-white transition-colors truncate flex-1">
+                            <div className="flex justify-between items-start mb-2 border-b border-[var(--accent-color)]/30 pb-2 gap-2">
+                                <span className="text-[var(--accent-color)] text-xs font-bold tracking-wider group-hover:text-[var(--text-color)] transition-colors truncate flex-1">
                                     {item.title}
                                 </span>
-                                <span className="text-[10px] text-gray-400 font-mono bg-gray-900 px-1.5 py-0.5 whitespace-nowrap">
+                                <span className="text-[var(--footer-text)] font-mono bg-[var(--input-bg)] px-1.5 py-0.5 whitespace-nowrap">
                                     {item.date}
                                 </span>
                             </div>
-                            <p className="text-gray-100 font-mono text-xs leading-relaxed line-clamp-3">
+                            <p className="text-[var(--text-color)] font-mono text-xs leading-relaxed line-clamp-3">
                                 {item.text}
                             </p>
                         </div>
@@ -120,7 +120,7 @@ export const NewsCard: React.FC<NewsCardProps> = ({ onReadMore }) => {
                     flex items-center gap-1 px-3 py-1 border-2 text-[9px] transition-all uppercase tracking-wider
                     ${slideIndex === 0 
                         ? 'border-gray-800 text-gray-700 cursor-not-allowed opacity-50' 
-                        : 'border-pac-ghostCyan text-pac-ghostCyan hover:bg-pac-ghostCyan hover:text-black'
+                        : 'border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-[var(--card-bg)]'
                     }
                 `}
             >
@@ -133,7 +133,7 @@ export const NewsCard: React.FC<NewsCardProps> = ({ onReadMore }) => {
                     flex items-center gap-2 px-4 py-1 border-2 text-[9px] transition-all uppercase tracking-wider font-bold shadow-[2px_2px_0_0_black]
                     ${isLastSlide
                         ? 'bg-pac-yellow border-pac-yellow text-black hover:bg-white hover:border-white animate-pulse' 
-                        : 'border-pac-ghostCyan text-pac-ghostCyan hover:bg-pac-ghostCyan hover:text-black'
+                        : 'border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-[var(--card-bg)]'
                     }
                 `}
             >

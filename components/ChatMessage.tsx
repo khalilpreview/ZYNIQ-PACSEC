@@ -11,6 +11,14 @@ import { AesCard } from './AesCard';
 import { SanitizeCard } from './SanitizeCard';
 import { GhostLinkCard } from './GhostLinkCard';
 import { BreachRadarCard } from './BreachRadarCard';
+import { QRCodeCard } from './QRCodeCard';
+import { PassphraseCard } from './PassphraseCard';
+import { EncoderCard } from './EncoderCard';
+import { TotpCard } from './TotpCard';
+import { JwtDebuggerCard } from './JwtDebuggerCard';
+import { RegexTesterCard } from './RegexTesterCard';
+import { CspBuilderCard } from './CspBuilderCard';
+import { CorsBuilderCard } from './CorsBuilderCard';
 
 interface ChatMessageProps {
   message: Message;
@@ -69,15 +77,15 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onExpire, onP
             ${isGlitching ? 'glitch-anim border-red-500 shadow-[4px_4px_0_0_rgba(239,68,68,0.5)]' : ''}
             ${
                 isUser
-                ? 'bg-pac-blue text-white border-white' 
+                ? 'bg-[var(--pac-blue-custom)] text-white border-white' 
                 : isError 
                     ? 'bg-red-950 text-red-100 border-red-500'
-                    : 'bg-black text-gray-50 border-pac-yellow'
+                    : 'bg-[var(--message-system-bg)] text-[var(--message-system-text)] border-pac-yellow'
             }
         `}>
             {/* Countdown Timer Header - Integrated into border */}
             {timeLeft !== null && (
-                <div className={`absolute -top-3 ${isUser ? 'left-2' : 'right-2'} bg-black px-2 border-2 z-10 ${isGlitching ? 'border-red-500 text-red-500 animate-pulse' : 'border-gray-600 text-gray-500'}`}>
+                <div className={`absolute -top-3 ${isUser ? 'left-2' : 'right-2'} bg-[var(--card-bg)] px-2 border-2 z-10 ${isGlitching ? 'border-red-500 text-red-500 animate-pulse' : 'border-gray-600 text-gray-500'}`}>
                     <span className="font-arcade text-[8px] font-bold tracking-widest">
                         TTL {formatTime(timeLeft)}
                     </span>
@@ -102,25 +110,26 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onExpire, onP
                 )}
             </div>
 
-            {/* Prompt List (Menu) - GRID LAYOUT */}
+            {/* Prompt List (Menu) - 3 COLUMN LAYOUT FOR READABILITY */}
             {message.prompts && (
-                <div className="border-t-2 border-gray-800 bg-gray-900/30 p-2 md:p-3">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3">
+                <div className="border-t-2 border-[var(--border-color)] bg-black/10 p-2 md:p-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                         {message.prompts.map((p, idx) => (
                             <button
                                 key={p.id}
                                 onClick={() => onPromptInteract && onPromptInteract(p)}
                                 className={`
-                                    group flex flex-col items-start gap-2 p-2 md:p-3 text-left transition-all duration-200
-                                    border border-gray-800 hover:border-pac-blue bg-black relative
+                                    group flex flex-col items-start gap-1.5 p-2 md:p-2.5 text-left transition-all duration-200
+                                    border border-[var(--border-color)] hover:border-pac-blue bg-[var(--card-bg)] relative
                                     hover:bg-pac-blue hover:text-white focus:bg-pac-blue focus:text-white outline-none
                                     h-full shadow-[2px_2px_0_0_rgba(0,0,0,0.5)] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px]
+                                    min-h-[70px]
                                 `}
                             >
                                 {/* Header: Icon + Label */}
-                                <div className="flex items-center gap-2 w-full border-b border-gray-800/50 pb-2 mb-1 group-hover:border-white/20">
+                                <div className="flex items-center gap-1.5 w-full">
                                     <div className={`
-                                        flex-shrink-0 w-4 h-4 md:w-5 md:h-5 flex items-center justify-center border font-arcade text-[8px] md:text-[9px]
+                                        flex-shrink-0 w-4 h-4 flex items-center justify-center border font-arcade text-[7px]
                                         ${p.type === 'category' 
                                             ? 'border-pac-yellow text-pac-yellow' 
                                             : 'border-pac-ghostCyan text-pac-ghostCyan'
@@ -129,19 +138,19 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onExpire, onP
                                     `}>
                                         {p.type === 'category' ? '+' : '>'}
                                     </div>
-                                    <span className="font-arcade text-[9px] md:text-[10px] tracking-wider truncate flex-1 text-white group-hover:text-pac-yellow">
+                                    <span className="font-arcade text-[8px] md:text-[9px] tracking-wider truncate flex-1 text-[var(--text-color)] group-hover:text-pac-yellow leading-tight">
                                         {p.label}
                                     </span>
                                 </div>
 
                                 {/* Description */}
-                                <span className={`text-[9px] md:text-[10px] font-mono leading-tight line-clamp-2 group-hover:text-gray-100 ${p.type === 'category' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                <span className={`text-[8px] md:text-[9px] font-mono leading-tight line-clamp-2 group-hover:text-gray-100 ${p.type === 'category' ? 'text-gray-400' : 'text-gray-500'}`}>
                                     {p.desc}
                                 </span>
 
                                  {/* Type Indicator */}
                                  {p.type === 'category' && (
-                                    <span className="absolute top-2 right-2 font-arcade text-[8px] text-gray-700 group-hover:text-white/50">
+                                    <span className="absolute top-1.5 right-1.5 font-arcade text-[6px] text-gray-700 group-hover:text-white/50">
                                         DIR
                                     </span>
                                 )}
@@ -174,6 +183,14 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onExpire, onP
                             case 'sanitize': return <SanitizeCard />;
                             case 'ghostLink': return <GhostLinkCard />;
                             case 'breachRadar': return <BreachRadarCard />;
+                            case 'qrCode': return <QRCodeCard />;
+                            case 'passphrase': return <PassphraseCard />;
+                            case 'encoder': return <EncoderCard />;
+                            case 'totp': return <TotpCard />;
+                            case 'jwtDebugger': return <JwtDebuggerCard />;
+                            case 'regexTester': return <RegexTesterCard />;
+                            case 'cspBuilder': return <CspBuilderCard />;
+                            case 'corsBuilder': return <CorsBuilderCard />;
                             default: return <SecretCard config={message.toolCall} />;
                         }
                     })()}

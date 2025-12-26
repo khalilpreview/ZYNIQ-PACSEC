@@ -1,4 +1,8 @@
-export type SecretType = 'password' | 'jwt' | 'uuid' | 'apiKey' | 'recipe' | 'note' | 'rsa' | 'hash' | 'aes' | 'sanitize' | 'ghostLink' | 'breachRadar';
+export type SecretType = 
+  | 'password' | 'jwt' | 'uuid' | 'apiKey' | 'recipe' | 'note' | 'rsa' | 'hash' 
+  | 'aes' | 'sanitize' | 'ghostLink' | 'breachRadar' | 'qrCode' | 'passphrase' | 'encoder'
+  // New tool types
+  | 'totp' | 'cspBuilder' | 'corsBuilder' | 'jwtDebugger' | 'regexTester' | 'sslChecker';
 
 export interface SecretConfig {
   type: SecretType;
@@ -15,6 +19,14 @@ export interface SecretConfig {
     label: string;
     config: SecretConfig;
   }[];
+  // JWT Debugger specific
+  jwtToken?: string;
+  // Regex Tester specific
+  pattern?: string;
+  testString?: string;
+  // TOTP specific
+  totpSecret?: string;
+  totpLabel?: string;
 }
 
 export interface PromptItem {

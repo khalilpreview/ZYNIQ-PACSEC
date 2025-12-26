@@ -2,77 +2,199 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pac-Sec | Secure Key Gen</title>
+
+    <!-- Primary Meta Tags -->
+    <title>PACSEC | AI-Powered Security Command Center</title>
+    <meta name="title" content="PACSEC | AI-Powered Security Command Center" />
+    <meta
+      name="description"
+      content="Advanced cryptographic toolkit. Generate passwords, JWT secrets, RSA keys, and more. 100% client-side processing. Zero tracking. Zero storage."
+    />
+    <meta
+      name="keywords"
+      content="password generator, security, encryption, RSA, JWT, API keys, cryptography, privacy, developer tools"
+    />
+    <meta name="author" content="ZYNIQ Systems" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Viewport & Theme -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#F2C94C" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="PACSEC" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://pacsec.zyniq.solutions/" />
+    <meta
+      property="og:title"
+      content="PACSEC | AI-Powered Security Command Center"
+    />
+    <meta
+      property="og:description"
+      content="Advanced cryptographic toolkit. 100% client-side. Zero tracking. Generate passwords, keys, and secure notes with AI assistance."
+    />
+    <meta
+      property="og:image"
+      content="https://pacsec.zyniq.solutions/og-image.png"
+    />
+    <meta property="og:site_name" content="PACSEC by ZYNIQ" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://pacsec.zyniq.solutions/" />
+    <meta
+      property="twitter:title"
+      content="PACSEC | AI-Powered Security Command Center"
+    />
+    <meta
+      property="twitter:description"
+      content="Advanced cryptographic toolkit. 100% client-side. Zero tracking. Generate passwords, keys, and secure notes with AI assistance."
+    />
+    <meta
+      property="twitter:image"
+      content="https://pacsec.zyniq.solutions/og-image.png"
+    />
+
+    <!-- Favicon & Icons -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Fonts & Styles -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Service Worker Registration -->
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("/sw.js")
+            .then((registration) => {
+              console.log("SW registered:", registration.scope);
+            })
+            .catch((error) => {
+              console.log("SW registration failed:", error);
+            });
+        });
+      }
+    </script>
+
     <script>
       tailwind.config = {
         theme: {
           extend: {
             colors: {
               pac: {
-                yellow: '#F2C94C',
-                black: '#121212',
-                blue: '#1e293b',
-                ghostRed: '#FF0000',
-                ghostPink: '#FFB8FF',
-                ghostCyan: '#00FFFF',
-                ghostOrange: '#FFB852',
-              }
+                yellow: "#F2C94C",
+                black: "#121212",
+                blue: "#1e293b",
+                ghostRed: "#FF0000",
+                ghostPink: "#FFB8FF",
+                ghostCyan: "#00FFFF",
+                ghostOrange: "#FFB852",
+              },
             },
             fontFamily: {
-              arcade: ['"Press Start 2P"', 'cursive'],
-              sans: ['"Inter"', 'sans-serif'],
+              arcade: ['"Press Start 2P"', "cursive"],
+              sans: ['"Inter"', "sans-serif"],
             },
             animation: {
-              'chomp': 'chomp 0.3s infinite linear alternate',
-              'dash': 'dash 1.5s ease-in-out infinite',
-              'fade-in': 'fadeIn 0.5s ease-out forwards',
-              'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
+              chomp: "chomp 0.3s infinite linear alternate",
+              dash: "dash 1.5s ease-in-out infinite",
+              "fade-in": "fadeIn 0.5s ease-out forwards",
+              "fade-in-up": "fadeInUp 0.5s ease-out forwards",
             },
             keyframes: {
               chomp: {
-                '0%': { transform: 'rotate(0deg)' },
-                '100%': { transform: 'rotate(45deg)' }
+                "0%": { transform: "rotate(0deg)" },
+                "100%": { transform: "rotate(45deg)" },
               },
               dash: {
-                '0%': { transform: 'translateX(-100%)' },
-                '100%': { transform: 'translateX(100%)' }
+                "0%": { transform: "translateX(-100%)" },
+                "100%": { transform: "translateX(100%)" },
               },
               fadeIn: {
-                '0%': { opacity: '0' },
-                '100%': { opacity: '1' }
+                "0%": { opacity: "0" },
+                "100%": { opacity: "1" },
               },
               fadeInUp: {
-                '0%': { opacity: '0', transform: 'translateY(10px)' },
-                '100%': { opacity: '1', transform: 'translateY(0)' }
-              }
-            }
-          }
-        }
-      }
+                "0%": { opacity: "0", transform: "translateY(10px)" },
+                "100%": { opacity: "1", transform: "translateY(0)" },
+              },
+            },
+          },
+        },
+      };
     </script>
     <style>
+      :root {
+        --bg-color: #121212;
+        --text-color: #ffffff;
+        --card-bg: #000000;
+        --border-color: #1e293b;
+        --accent-color: #f2c94c;
+        --footer-bg: rgba(0, 0, 0, 0.9);
+        --footer-text: #9ca3af;
+        --input-bg: #000000;
+        --message-system-bg: #000000;
+        --message-system-text: #f9fafb;
+        --pac-blue-custom: #1e293b;
+        --header-bg: rgba(0, 0, 0, 0.9);
+      }
+
+      body.light-mode {
+        --bg-color: #f8fafc;
+        --text-color: #0f172a;
+        --card-bg: #ffffff;
+        --border-color: #cbd5e1;
+        --accent-color: #2563eb;
+        --footer-bg: rgba(255, 255, 255, 0.9);
+        --footer-text: #64748b;
+        --input-bg: #ffffff;
+        --message-system-bg: #ffffff;
+        --message-system-text: #334155;
+        --pac-blue-custom: #e2e8f0;
+        --header-bg: rgba(255, 255, 255, 0.9);
+      }
+
       body {
-        background-color: #0f172a;
-        color: white;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        transition: background-color 0.3s, color 0.3s;
       }
       /* Custom Scrollbar */
       ::-webkit-scrollbar {
         width: 8px;
       }
       ::-webkit-scrollbar-track {
-        background: #1e293b; 
+        background: #1e293b;
       }
       ::-webkit-scrollbar-thumb {
-        background: #334155; 
+        background: #334155;
         border-radius: 4px;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #F2C94C; 
+        background: #f2c94c;
       }
       .scanline {
         background: linear-gradient(
@@ -92,43 +214,58 @@
         z-index: 9999;
         opacity: 0.25;
       }
-      
+
       /* Glitch & Self Destruct Effects */
       .glitch-anim {
-        animation: glitch-anim 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+        animation: glitch-anim 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both
+          infinite;
       }
       @keyframes glitch-anim {
-        0% { transform: translate(0) }
-        20% { transform: translate(-2px, 2px) }
-        40% { transform: translate(-2px, -2px) }
-        60% { transform: translate(2px, 2px) }
-        80% { transform: translate(2px, -2px) }
-        100% { transform: translate(0) }
+        0% {
+          transform: translate(0);
+        }
+        20% {
+          transform: translate(-2px, 2px);
+        }
+        40% {
+          transform: translate(-2px, -2px);
+        }
+        60% {
+          transform: translate(2px, 2px);
+        }
+        80% {
+          transform: translate(2px, -2px);
+        }
+        100% {
+          transform: translate(0);
+        }
       }
 
       .crumble {
-         animation: crumble 1s forwards;
+        animation: crumble 1s forwards;
       }
       @keyframes crumble {
-        0% { opacity: 1; filter: blur(0px); transform: scale(1); }
-        50% { opacity: 0.5; filter: blur(2px); transform: scale(0.9) skew(10deg); }
-        100% { opacity: 0; filter: blur(10px); transform: scale(0) skew(20deg); }
+        0% {
+          opacity: 1;
+          filter: blur(0px);
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.5;
+          filter: blur(2px);
+          transform: scale(0.9) skew(10deg);
+        }
+        100% {
+          opacity: 0;
+          filter: blur(10px);
+          transform: scale(0) skew(20deg);
+        }
       }
     </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "dompurify": "https://aistudiocdn.com/dompurify@^3.3.0"
-  }
-}
-</script>
-</head>
+  </head>
   <body>
     <div id="root"></div>
     <div class="scanline"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>

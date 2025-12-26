@@ -12,13 +12,29 @@ export const generateSecurePassword = (length: number, options: { symbols: boole
   if (options.symbols) charset += symbols;
 
   let retVal = "";
-  const values = new Uint32Array(length);
-  crypto.getRandomValues(values);
+  // Rejection sampling to avoid modulo bias
+  const maxByte = 256 - (256 % charset.length);
 
-  for (let i = 0; i < length; i++) {
-    retVal += charset[values[i] % charset.length];
+  while (retVal.length < length) {
+    const array = new Uint8Array(1);
+    crypto.getRandomValues(array);
+    const byte = array[0];
+    if (byte < maxByte) {
+      retVal += charset[byte % charset.length];
+    }
   }
   return retVal;
+};
+
+export const calculateEntropy = (password: string): number => {
+  const poolSize =
+    (password.match(/[a-z]/) ? 26 : 0) +
+    (password.match(/[A-Z]/) ? 26 : 0) +
+    (password.match(/[0-9]/) ? 10 : 0) +
+    (password.match(/[^a-zA-Z0-9]/) ? 32 : 0);
+
+  if (poolSize === 0) return 0;
+  return Math.round(password.length * Math.log2(poolSize));
 };
 
 export const generateSecureHex = (bits: number): string => {

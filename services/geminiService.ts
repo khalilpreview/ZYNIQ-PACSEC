@@ -8,14 +8,14 @@ const tools: Tool[] = [
     functionDeclarations: [
       {
         name: "configure_generator",
-        description: "Configure a secure key generator, recipe, secure note, RSA keypair, hash utility, AES tool, sanitizer, ghost link, or breach radar.",
+        description: "Configure a secure key generator, recipe, secure note, RSA keypair, hash utility, AES tool, sanitizer, ghost link, breach radar, QR code, passphrase, encoder, TOTP, JWT debugger, regex tester, CSP builder, or CORS builder. Always use this tool when user asks for any security-related generation or tool.",
         parameters: {
           type: Type.OBJECT,
           properties: {
             type: {
               type: Type.STRING,
-              enum: ["password", "jwt", "uuid", "apiKey", "recipe", "note", "rsa", "hash", "aes", "sanitize", "ghostLink", "breachRadar"],
-              description: "The type of secret/tool. Use 'breachRadar' for checking pwned passwords/emails."
+              enum: ["password", "jwt", "uuid", "apiKey", "recipe", "note", "rsa", "hash", "aes", "sanitize", "ghostLink", "breachRadar", "qrCode", "passphrase", "encoder", "totp", "jwtDebugger", "regexTester", "cspBuilder", "corsBuilder"],
+              description: "The type of secret/tool to configure. REQUIRED. Use 'password' for passwords, 'jwt' for JWT secrets, 'uuid' for UUIDs, 'apiKey' for API keys, 'recipe' for multi-key bundles, 'note' for secure notes, 'rsa' for RSA keypairs, 'hash' for hashing, 'aes' for encryption/decryption, 'sanitize' for input sanitization, 'ghostLink' for encrypted pastebin, 'breachRadar' for breach checking, 'qrCode' for QR generation, 'passphrase' for diceware passphrases, 'encoder' for base64/hex encoding, 'totp' for 2FA/authenticator codes, 'jwtDebugger' for JWT token inspection, 'regexTester' for regex testing, 'cspBuilder' for Content Security Policy, 'corsBuilder' for CORS configuration."
             },
             // Single Item Params
             length: { type: Type.INTEGER, description: "Length for passwords/keys." },
@@ -107,8 +107,9 @@ export const processUserRequest = async (prompt: string): Promise<GeminiResponse
 
     const response = await generateWithRetry(modelId, prompt, {
         tools: tools,
-        systemInstruction: `You are a cybersecurity expert assistant for 'Pac-Sec'.
-        
+        systemInstruction: `Your name is PACSEC You are a cybersecurity expert assistant for 'Pac-Sec'.
+        Your task is to interpret user requests for secure key generation and map them to the appropriate generator configurations.
+        Follow these
         Rules:
         1. Single Key: If user asks for one thing (e.g. "password"), use type='password', 'jwt', 'apiKey', or 'uuid'.
         2. Multi-Key (Recipe): If user asks for a set/stack (e.g. "API credentials", "OAuth setup", "App loot crate"), use type='recipe'.
@@ -122,8 +123,16 @@ export const processUserRequest = async (prompt: string): Promise<GeminiResponse
         7. Sanitize: If user asks to "sanitize", "escape inputs", "clean text", use type='sanitize'.
         8. Ghost Link (Pastebin): If user asks to "share securely", "create pastebin", "generate link", "ghost link", use type='ghostLink'.
         9. Breach Radar: If user asks "am I pwned?", "check password leak", "HIBP check", "breach check", use type='breachRadar'.
-        10. Defaults: Password length 16+, Key bits 256.
-        11. Persona: Professional, retro-arcade style. Brief text.
+        10. QR Code: If user asks to "generate QR", "make QR code", "create barcode", use type='qrCode'.
+        11. Passphrase: If user asks for "diceware", "passphrase", "word password", "memorable password", use type='passphrase'.
+        12. Encoder: If user asks to "encode base64", "decode hex", "URL encode", "convert to base64", use type='encoder'.
+        13. TOTP: If user asks for "2FA", "authenticator", "TOTP", "one-time password", "two-factor", use type='totp'.
+        14. JWT Debugger: If user asks to "decode JWT", "inspect token", "debug JWT", "validate JWT", use type='jwtDebugger'.
+        15. Regex Tester: If user asks to "test regex", "regex pattern", "regular expression", "match pattern", use type='regexTester'.
+        16. CSP Builder: If user asks for "CSP", "content security policy", "security headers", "XSS protection headers", use type='cspBuilder'.
+        17. CORS Builder: If user asks for "CORS", "cross-origin", "CORS headers", "access control allow origin", use type='corsBuilder'.
+        18. Defaults: Password length 16+, Key bits 256.
+        19. Persona: Conversational and Professional, retro-arcade style. Brief text don't make any jokes until user start.
         `
     });
 
@@ -168,6 +177,14 @@ export const processUserRequest = async (prompt: string): Promise<GeminiResponse
             if (args.type === 'sanitize') loadingText = "Engaging Input Sanitizer...";
             if (args.type === 'ghostLink') loadingText = "Initializing E2E Encrypted Pastebin...";
             if (args.type === 'breachRadar') loadingText = "Connecting to Dark Web Scanners (Anonymized)...";
+            if (args.type === 'qrCode') loadingText = "Rendering QR Matrix...";
+            if (args.type === 'passphrase') loadingText = "Rolling Diceware Entropy...";
+            if (args.type === 'encoder') loadingText = "Loading Encoder/Decoder Module...";
+            if (args.type === 'totp') loadingText = "Initializing TOTP Authenticator...";
+            if (args.type === 'jwtDebugger') loadingText = "Decoding JWT Token Structure...";
+            if (args.type === 'regexTester') loadingText = "Loading Regex Pattern Engine...";
+            if (args.type === 'cspBuilder') loadingText = "Compiling Content Security Policy...";
+            if (args.type === 'corsBuilder') loadingText = "Configuring CORS Headers...";
 
             return {
                 text: loadingText,
