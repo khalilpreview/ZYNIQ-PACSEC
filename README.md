@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![PACSEC Banner](https://img.shields.io/badge/PACSEC-Security%20Toolkit-F2C94C?style=for-the-badge&logo=pac-man&logoColor=black)
+[![PACSEC Banner](https://img.shields.io/badge/PACSEC-Security%20Toolkit-F2C94C?style=for-the-badge&logo=pac-man&logoColor=black)](https://pacsec.guru)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org)
 [![Vite](https://img.shields.io/badge/Vite-6.x-646CFF?style=flat-square&logo=vite)](https://vitejs.dev)
@@ -585,7 +585,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Built with 💛 by [ZYNIQ](https://zyniq.solutions)**
 
-[![Twitter](https://img.shields.io/badge/Twitter-Follow-1DA1F2?style=flat-square&logo=twitter)](https://twitter.com/zyniq)
+[![Twitter](https://img.shields.io/badge/Twitter-Follow-1DA1F2?style=flat-square&logo=twitter)](https://twitter.com/zyniq_solutions)
 [![GitHub](https://img.shields.io/badge/GitHub-Star-181717?style=flat-square&logo=github)](https://github.com/ZYNIQ-AI-Driven-Development-Firm/ZYNIQ-PACSEC)
 
 </div>
